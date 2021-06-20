@@ -1,3 +1,7 @@
+export interface GUISettings {
+    sRange: number;
+}
+
 export interface PointCoords {
     x: number;
     y: number;
