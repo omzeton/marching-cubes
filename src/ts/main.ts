@@ -37,8 +37,8 @@ class Renderer {
     }
 
     private animation() {
-        this._time += 0.01;
-        this.action();
+        this._time += 0.1;
+        this.applyNoiseValues();
         this._renderer.render(this._scene, this._camera);
         window.requestAnimationFrame(this.animation.bind(this));
     }
@@ -56,68 +56,42 @@ class Renderer {
     }
 
     private setup() {
-        this.generateNoiseField();
-        this.populateField();
+        this.createField();
+        this.applyNoiseValues();
     }
 
-    private generateNoiseField() {
+    private createField() {
         const { height, width, depth } = this._dimensions;
-        const zArr: a3DArr = [];
         for (let x = 0; x < width; x += this._res) {
-            let xArr: a2DArr = [];
             for (let y = 0; y < height; y += this._res) {
-                let yArr: a1DArr = [];
-                const frequency = 0.05;
                 for (let z = 0; z < depth; z += this._res) {
-                    const final = this._noise.noise3D(x * frequency, y * frequency, z * frequency);
-                    yArr.push(final);
-                }
-                xArr.push(yArr);
-            }
-            zArr.push(xArr);
-        }
-        this._field = zArr;
-    }
-
-    private populateField() {
-        const { height, width, depth } = this._dimensions;
-        for (let x = 0; x < width - 1; x += this._res) {
-            for (let y = 0; y < height - 1; y += this._res) {
-                for (let z = 0; z < depth - 1; z += this._res) {
-                    this.processSingleCell({
-                        noiseVal: this._field[z / this._res][y / this._res][x / this._res],
-                        position: {
-                            x,
-                            y,
-                            z,
-                        },
-                    });
+                    const color = new THREE.Color("rgb(255, 255, 255)");
+                    const geometry = new THREE.SphereGeometry(0.3, 32, 32);
+                    const material = new THREE.MeshBasicMaterial({ color });
+                    material.transparent = true;
+                    const cube = new THREE.Mesh(geometry, material);
+                    cube.position.set(x, y, z);
+                    this._shapeGroup.add(cube);
                 }
             }
         }
         this._shapeGroup.position.set(-width / 2, -height / 2, -depth / 2);
-        this._scene.add(this._shapeGroup!);
+        this._scene.add(this._shapeGroup);
     }
 
-    private processSingleCell({ noiseVal, position }: { noiseVal: number; position: PointCoords }) {
-        const c = Math.floor(map(noiseVal, -1, 1, 0, 255));
-        const color = new THREE.Color(`rgb(${c}, ${c}, ${c})`);
-        const geometry = new THREE.SphereGeometry(0.3, 32, 32);
-        const material = new THREE.MeshBasicMaterial({ color });
-        material.transparent = true;
-        const cube = new THREE.Mesh(geometry, material);
-        cube.position.set(position.x, position.y, position.z);
-        this._shapeGroup.add(cube);
-    }
-
-    private action() {
+    private applyNoiseValues() {
         const { height, width, depth } = this._dimensions;
-        for (let x = 0; x < width - 1; x += this._res) {
-            for (let y = 0; y < height - 1; y += this._res) {
-                for (let z = 0; z < depth - 1; z += this._res) {
+        for (let x = 0; x < width; x += this._res) {
+            for (let y = 0; y < height; y += this._res) {
+                for (let z = 0; z < depth; z += this._res) {
+                    const frequency = 0.05;
+                    const final = this._noise.noise3D((x + this._time) * frequency, (y + this._time) * frequency, (z + this._time) * frequency);
+                    const c = Math.floor(map(final, -1, 1, 0, 255));
+                    const color = new THREE.Color(`rgb(${c}, ${c}, ${c})`);
                     const meshes = this._shapeGroup.children as any[]; // THREE.js types are wrong :((
                     meshes.forEach(mesh => {
                         if (mesh.position.x === x && mesh.position.y === y && mesh.position.z === z) {
+                            mesh.material.color = color;
                             if (mesh.material.color.r <= this._settings.sRange) {
                                 mesh.material.opacity = 0;
                             } else {
