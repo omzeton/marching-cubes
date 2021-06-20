@@ -65,7 +65,7 @@ class Renderer {
             for (let y = 0; y < height; y += this._res) {
                 for (let z = 0; z < depth; z += this._res) {
                     const color = new THREE.Color("rgb(255, 255, 255)");
-                    const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+                    const geometry = new THREE.BoxGeometry(1, 1, 1);
                     const material = new THREE.MeshBasicMaterial({ color });
                     material.transparent = true;
                     const cube = new THREE.Mesh(geometry, material);
