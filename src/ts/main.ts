@@ -2,7 +2,7 @@ import * as THREE from "three";
 import * as dat from "dat.gui";
 import SimplexNoise from "simplex-noise";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { PointCoords, FieldArea, a1DArr, a2DArr, a3DArr, GUISettings } from "./types";
+import { FieldArea, GUISettings } from "./types";
 
 const map = (value: number, x1: number, y1: number, x2: number, y2: number): number => ((value - x1) * (y2 - x2)) / (y1 - x1) + x2;
 const lerp = (start: number, end: number, amt: number): number => (1 - amt) * start + amt * end;
@@ -19,7 +19,6 @@ class Renderer {
     _noise: SimplexNoise = new SimplexNoise(Date.now().toString());
     _res: number = 2;
     _time: number = 0;
-    _field: a3DArr = [];
 
     constructor() {
         this.init();
@@ -66,7 +65,7 @@ class Renderer {
             for (let y = 0; y < height; y += this._res) {
                 for (let z = 0; z < depth; z += this._res) {
                     const color = new THREE.Color("rgb(255, 255, 255)");
-                    const geometry = new THREE.SphereGeometry(0.3, 32, 32);
+                    const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
                     const material = new THREE.MeshBasicMaterial({ color });
                     material.transparent = true;
                     const cube = new THREE.Mesh(geometry, material);
